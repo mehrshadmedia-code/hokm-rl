@@ -94,7 +94,6 @@ def evaluate_baseline_entry(
 
     return summarize_results(name=name, results=results)
 
-
 def evaluate_model_entry(
     name: str,
     model_path: str,
@@ -110,26 +109,31 @@ def evaluate_model_entry(
         print(f"Skipping {name}: model not found at {model_path}")
         return None
 
-    model = MaskablePPO.load(str(path))
+    try:
+        model = MaskablePPO.load(str(path))
 
-    results = []
+        results = []
 
-    for episode_index in range(num_episodes):
-        episode_seed = seed + episode_index
+        for episode_index in range(num_episodes):
+            episode_seed = seed + episode_index
 
-        results.append(
-            run_model_episode(
-                model=model,
-                seed=episode_seed,
-                deterministic=deterministic,
-                opponent_policy_name=opponent_policy_name,
-                partner_policy_name=partner_policy_name,
+            results.append(
+                run_model_episode(
+                    model=model,
+                    seed=episode_seed,
+                    deterministic=deterministic,
+                    opponent_policy_name=opponent_policy_name,
+                    partner_policy_name=partner_policy_name,
+                )
             )
-        )
 
-    return summarize_results(name=name, results=results)
+        return summarize_results(name=name, results=results)
 
-
+    except ValueError as exc:
+        print(f"Skipping {name}: incompatible model/environment shape.")
+        print(f"  Reason: {exc}")
+        return None
+    
 def print_comparison_table(rows: List[Dict]) -> None:
     print("=" * 90)
     print("Hokm Policy Comparison")
@@ -184,14 +188,14 @@ def compare_policies(
             )
         )
 
-    model_entries = [
+        model_entries = [
         (
-            "stage_a_random_opponents",
-            "models/stage_a_random_opponents.zip",
+            "stage_a_features_random",
+            "models/stage_a_features_random.zip",
         ),
         (
-            "stage_b_simple_opponents",
-            "models/stage_b_simple_opponents.zip",
+            "stage_b_features_simple",
+            "models/stage_b_features_simple.zip",
         ),
         (
             "latest_default_model",
