@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Training outputs
+runs/
+checkpoints/
+models/
+logs/
+*.pt
+*.pth
+*.onnx
