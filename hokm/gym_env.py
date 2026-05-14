@@ -193,6 +193,18 @@ class HokmGymEnv(gym.Env):
             mask[action] = 1
 
         return mask
+    
+
+    def action_masks(self) -> np.ndarray:
+        """
+        Compatibility method for sb3-contrib MaskablePPO.
+
+        MaskablePPO expects this method name.
+        True/1 means the action is valid.
+        False/0 means the action is invalid.
+        """
+        return self.action_mask().astype(bool)
+    
 
     def get_legal_actions(self):
         if self.env is None:
