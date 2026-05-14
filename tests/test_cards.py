@@ -1,7 +1,6 @@
 import pytest
 
-from hokm.cards import Card, create_deck, shuffle_deck, deal_cards
-
+from hokm.cards import Card, create_deck, shuffle_deck, deal_cards, deal_hokm_style
 
 def test_card_creation():
     card = Card("hearts", "A")
@@ -58,3 +57,38 @@ def test_deal_cards_to_4_players():
 
     assert len(all_cards) == 52
     assert len(set(all_cards)) == 52
+
+def test_deal_hokm_style_gives_every_player_13_cards():
+    deck = shuffle_deck(create_deck(), seed=42)
+    hands = deal_hokm_style(deck, hakem=0)
+
+    assert len(hands) == 4
+    assert all(len(hand) == 13 for hand in hands)
+
+    all_cards = [card for hand in hands for card in hand]
+
+    assert len(all_cards) == 52
+    assert len(set(all_cards)) == 52
+
+
+def test_deal_hokm_style_gives_first_five_cards_to_hakem():
+    deck = shuffle_deck(create_deck(), seed=42)
+    hands = deal_hokm_style(deck, hakem=0)
+
+    assert hands[0][:5] == deck[:5]
+
+
+def test_deal_hokm_style_works_for_different_hakem():
+    deck = shuffle_deck(create_deck(), seed=42)
+    hands = deal_hokm_style(deck, hakem=2)
+
+    assert len(hands) == 4
+    assert all(len(hand) == 13 for hand in hands)
+    assert hands[2][:5] == deck[:5]
+
+
+def test_deal_hokm_style_invalid_hakem_raises_error():
+    deck = shuffle_deck(create_deck(), seed=42)
+
+    with pytest.raises(ValueError):
+        deal_hokm_style(deck, hakem=4)

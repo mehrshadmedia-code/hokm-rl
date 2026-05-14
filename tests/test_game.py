@@ -84,3 +84,16 @@ def test_final_score_has_one_team_with_seven_tricks():
     result = hand.play()
 
     assert 7 in result.team_tricks.values()
+
+def test_hakem_chooses_trump_from_first_five_cards():
+    hand = HokmHand(
+        agents=make_agents(),
+        hakem=0,
+        seed=42,
+    )
+
+    hand.setup()
+
+    first_five_suits = {card.suit for card in hand.hands[0][:5]}
+
+    assert hand.trump_suit in first_five_suits

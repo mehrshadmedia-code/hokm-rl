@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Sequence, Tuple
 
 from hokm.agents import RandomAgent
-from hokm.cards import Card, create_deck, deal_cards, shuffle_deck
+from hokm.cards import Card, create_deck, deal_hokm_style, shuffle_deck
 from hokm.rules import PlayedCard, determine_trick_winner, is_legal_play
 
 
@@ -51,8 +51,13 @@ class HokmHand:
 
     def setup(self) -> None:
         deck = shuffle_deck(create_deck(), seed=self.seed)
-        self.hands = deal_cards(deck)
-        self.trump_suit = self.agents[self.hakem].choose_trump(self.hands[self.hakem])
+
+        # First give Hakem only 5 cards to choose trump.
+        first_five_cards = deck[:5]
+        self.trump_suit = self.agents[self.hakem].choose_trump(first_five_cards)
+
+        # Then deal the full hand Hokm-style.
+        self.hands = deal_hokm_style(deck, hakem=self.hakem)
 
     def play(self) -> HandResult:
         if not self.hands:

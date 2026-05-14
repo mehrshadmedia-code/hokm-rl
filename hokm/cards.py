@@ -67,3 +67,39 @@ def deal_cards(deck: List[Card], num_players: int = 4) -> List[List[Card]]:
         hands[player_id].append(card)
 
     return hands
+
+def deal_hokm_style(deck: List[Card], hakem: int = 0) -> List[List[Card]]:
+    """
+    Deal cards in Hokm style.
+
+    For now:
+    - Hakem receives the first 5 cards.
+    - Then the remaining cards are dealt round-robin starting from the player after Hakem.
+    - Final result: each player has 13 cards.
+
+    This supports the real flow where Hakem chooses trump after seeing 5 cards.
+    """
+    if len(deck) != 52:
+        raise ValueError("Deck must contain exactly 52 cards.")
+
+    if hakem not in range(4):
+        raise ValueError("Hakem must be a player id from 0 to 3.")
+
+    hands = [[] for _ in range(4)]
+
+    # First 5 cards go to Hakem.
+    hands[hakem].extend(deck[:5])
+
+    remaining_deck = deck[5:]
+
+    # Continue dealing until everyone has 13 cards.
+    current_player = (hakem + 1) % 4
+
+    for card in remaining_deck:
+        while len(hands[current_player]) >= 13:
+            current_player = (current_player + 1) % 4
+
+        hands[current_player].append(card)
+        current_player = (current_player + 1) % 4
+
+    return hands
