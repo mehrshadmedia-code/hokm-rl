@@ -8,11 +8,17 @@ from sb3_contrib import MaskablePPO
 from hokm.gym_env import HokmGymEnv
 
 
-def run_episode(model: MaskablePPO, seed: int, deterministic: bool = True) -> Dict:
+def run_episode(
+    model: MaskablePPO,
+    seed: int,
+    deterministic: bool = True,
+    opponent_policy_name: str = "simple",
+    partner_policy_name: str = "simple",
+) -> Dict:
     env = HokmGymEnv(
         learning_player=0,
-        opponent_policy_name="simple",
-        partner_policy_name="simple",
+        opponent_policy_name=opponent_policy_name,
+        partner_policy_name=partner_policy_name,
         seed=seed,
     )
 
@@ -41,7 +47,7 @@ def run_episode(model: MaskablePPO, seed: int, deterministic: bool = True) -> Di
 
     return {
         "reward": final_reward,
-        "won": final_reward == 1.0,
+        "won": final_reward > 0,
         "steps": steps,
         "winning_team": info["winning_team"],
     }
@@ -52,6 +58,8 @@ def evaluate_model(
     num_episodes: int,
     seed: int,
     deterministic: bool = True,
+    opponent_policy_name: str = "simple",
+    partner_policy_name: str = "simple",
 ) -> Dict:
     model = MaskablePPO.load(model_path)
 
@@ -65,6 +73,8 @@ def evaluate_model(
                 model=model,
                 seed=episode_seed,
                 deterministic=deterministic,
+                opponent_policy_name=opponent_policy_name,
+                partner_policy_name=partner_policy_name,
             )
         )
 
@@ -74,6 +84,9 @@ def evaluate_model(
     return {
         "model_path": model_path,
         "num_episodes": num_episodes,
+        "opponent_policy": opponent_policy_name,
+        "partner_policy": partner_policy_name,
+        "deterministic": deterministic,
         "wins": wins,
         "losses": losses,
         "win_rate": wins / num_episodes if num_episodes else 0,
@@ -121,6 +134,22 @@ def parse_args():
         help="Use stochastic actions instead of deterministic actions.",
     )
 
+    parser.add_argument(
+        "--opponent-policy-name",
+        type=str,
+        default="simple",
+        choices=["simple", "random"],
+        help="Policy used by opponent players.",
+    )
+
+    parser.add_argument(
+        "--partner-policy-name",
+        type=str,
+        default="simple",
+        choices=["simple", "random"],
+        help="Policy used by the learning player's partner.",
+    )
+
     return parser.parse_args()
 
 
@@ -140,6 +169,8 @@ def main():
         num_episodes=args.num_episodes,
         seed=args.seed,
         deterministic=not args.stochastic,
+        opponent_policy_name=args.opponent_policy_name,
+        partner_policy_name=args.partner_policy_name,
     )
 
     print_stats(stats)

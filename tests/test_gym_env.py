@@ -25,7 +25,7 @@ def test_gym_env_step_with_legal_action():
 
     assert isinstance(next_obs, np.ndarray)
     assert next_obs.shape == env.observation_space.shape
-    assert reward in [-1.0, 0.0, 1.0]
+    assert -1.1 <= reward <= 1.1
     assert isinstance(terminated, bool)
     assert truncated is False
     assert "illegal_action" in step_info
@@ -65,7 +65,8 @@ def test_gym_env_can_finish_episode_with_first_legal_policy():
 
     assert terminated is True
     assert truncated is False
-    assert reward in [-1.0, 1.0]
+    assert -1.1 <= reward <= 1.1
+    assert reward != 0.0
     assert steps <= 13
 
 

@@ -136,6 +136,9 @@ class HokmGymEnv(gym.Env):
             }
             return observation, reward, terminated, truncated, info
 
+
+        team_tricks_before = self.env.team_tricks.copy()
+
         self.env.step(action)
 
         self._auto_play_until_learning_player_or_done()
@@ -143,12 +146,14 @@ class HokmGymEnv(gym.Env):
         terminated = self.env.done
         truncated = False
 
+        reward = self._shaped_reward_since(team_tricks_before)
+
         if terminated:
-            reward = self._terminal_reward_for_learning_player()
+            reward += self._terminal_reward_for_learning_player()
             observation = np.zeros(self.observation_space.shape, dtype=np.float32)
         else:
-            reward = 0.0
             observation = self._get_learning_observation()
+
 
         info = {
             "illegal_action": False,
@@ -255,6 +260,29 @@ class HokmGymEnv(gym.Env):
 
         return -1.0
 
+    def _shaped_reward_since(self, team_tricks_before: Dict[int, int]) -> float:
+            """
+            Small reward signal for tricks won/lost since the learning player's last action.
+            """
+            if self.env is None:
+                raise RuntimeError("Environment has not been reset.")
+
+            learning_team = TEAM_BY_PLAYER[self.learning_player]
+            opponent_team = 1 - learning_team
+
+            learning_team_gained = (
+                self.env.team_tricks[learning_team] - team_tricks_before[learning_team]
+            )
+            opponent_team_gained = (
+                self.env.team_tricks[opponent_team] - team_tricks_before[opponent_team]
+            )
+
+            reward = 0.0
+            reward += 0.05 * learning_team_gained
+            reward -= 0.05 * opponent_team_gained
+
+            return reward
+    
     def _make_policies(self, seed: int) -> Dict[int, object]:
         policies = {}
 
