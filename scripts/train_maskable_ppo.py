@@ -32,6 +32,7 @@ def train(
     model_path: Optional[str] = None,
     learning_rate: float = 3e-4,
     ent_coef: float = 0.02,
+    save_name: str = "hokm_maskable_ppo",
 ) -> Path:
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -71,7 +72,7 @@ def train(
         reset_num_timesteps=model_path is None,
     )
 
-    save_path = output_path / "hokm_maskable_ppo"
+    save_path = output_path / save_name
     model.save(save_path)
 
     print("=" * 60)
@@ -145,6 +146,13 @@ def parse_args():
         help="Entropy coefficient for exploration.",
     )
 
+    parser.add_argument(
+        "--save-name",
+        type=str,
+        default="hokm_maskable_ppo",
+        help="Model filename without .zip extension.",
+    )
+
     return parser.parse_args()
 
 
@@ -160,6 +168,7 @@ def main():
         model_path=args.model_path,
         learning_rate=args.learning_rate,
         ent_coef=args.ent_coef,
+        save_name=args.save_name,
     )
 
 
