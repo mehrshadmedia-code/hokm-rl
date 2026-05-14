@@ -1,6 +1,17 @@
 import pytest
 
-from hokm.cards import Card, create_deck, shuffle_deck, deal_cards, deal_hokm_style
+from hokm.cards import (
+    Card,
+    create_deck,
+    shuffle_deck,
+    deal_cards,
+    deal_hokm_style,
+    card_to_id,
+    id_to_card,
+    cards_to_vector,
+    vector_to_cards,
+)
+
 
 def test_card_creation():
     card = Card("hearts", "A")
@@ -92,3 +103,68 @@ def test_deal_hokm_style_invalid_hakem_raises_error():
 
     with pytest.raises(ValueError):
         deal_hokm_style(deck, hakem=4)
+
+def test_card_to_id_and_id_to_card_round_trip():
+    deck = create_deck()
+
+    for card in deck:
+        card_id = card_to_id(card)
+        restored_card = id_to_card(card_id)
+
+        assert restored_card == card
+
+
+def test_all_cards_have_unique_ids():
+    deck = create_deck()
+    card_ids = [card_to_id(card) for card in deck]
+
+    assert len(card_ids) == 52
+    assert len(set(card_ids)) == 52
+    assert min(card_ids) == 0
+    assert max(card_ids) == 51
+
+
+def test_invalid_card_id_raises_error():
+    import pytest
+
+    with pytest.raises(ValueError):
+        id_to_card(-1)
+
+    with pytest.raises(ValueError):
+        id_to_card(52)
+
+
+def test_cards_to_vector():
+    cards = [
+        Card("hearts", "A"),
+        Card("spades", "2"),
+        Card("clubs", "10"),
+    ]
+
+    vector = cards_to_vector(cards)
+
+    assert len(vector) == 52
+    assert sum(vector) == 3
+
+    for card in cards:
+        assert vector[card_to_id(card)] == 1
+
+
+def test_vector_to_cards():
+    cards = [
+        Card("hearts", "A"),
+        Card("spades", "2"),
+        Card("clubs", "10"),
+    ]
+
+    vector = cards_to_vector(cards)
+    restored_cards = vector_to_cards(vector)
+
+    assert set(restored_cards) == set(cards)
+
+
+def test_invalid_vector_length_raises_error():
+    import pytest
+
+    with pytest.raises(ValueError):
+        vector_to_cards([0, 1, 0])

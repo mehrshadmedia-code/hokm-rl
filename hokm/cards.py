@@ -103,3 +103,54 @@ def deal_hokm_style(deck: List[Card], hakem: int = 0) -> List[List[Card]]:
         current_player = (current_player + 1) % 4
 
     return hands
+
+def card_to_id(card: Card) -> int:
+    """
+    Convert a card to a unique id from 0 to 51.
+    """
+    suit_index = SUITS.index(card.suit)
+    rank_index = RANKS.index(card.rank)
+
+    return suit_index * len(RANKS) + rank_index
+
+
+def id_to_card(card_id: int) -> Card:
+    """
+    Convert a card id from 0 to 51 back to a Card.
+    """
+    if card_id < 0 or card_id >= 52:
+        raise ValueError(f"Card id must be between 0 and 51. Got {card_id}.")
+
+    suit_index = card_id // len(RANKS)
+    rank_index = card_id % len(RANKS)
+
+    return Card(
+        suit=SUITS[suit_index],
+        rank=RANKS[rank_index],
+    )
+
+
+def cards_to_vector(cards: List[Card]) -> List[int]:
+    """
+    Convert a list of cards to a 52-length binary vector.
+
+    Example:
+    - vector[i] = 1 means card with id i is present.
+    - vector[i] = 0 means card with id i is absent.
+    """
+    vector = [0] * 52
+
+    for card in cards:
+        vector[card_to_id(card)] = 1
+
+    return vector
+
+
+def vector_to_cards(vector: List[int]) -> List[Card]:
+    """
+    Convert a 52-length binary vector back to a list of cards.
+    """
+    if len(vector) != 52:
+        raise ValueError("Card vector must have length 52.")
+
+    return [id_to_card(index) for index, value in enumerate(vector) if value == 1]
