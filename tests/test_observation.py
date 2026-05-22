@@ -118,6 +118,8 @@ def test_build_player_observation():
     assert len(observation.trump_vector) == 4
     assert observation.team_tricks == [1, 0]
     assert observation.is_hakem == 0
+    assert len(observation.tactical_features) == 10
+
 
     assert sum(observation.hand_vector) == 3
     assert sum(observation.played_cards_vector) == 5
@@ -136,6 +138,7 @@ def test_build_player_observation_marks_hakem():
     )
 
     assert observation.is_hakem == 1
+    assert len(observation.tactical_features) == 10
 
 
 def test_invalid_player_id_raises_error():
@@ -164,6 +167,5 @@ def test_observation_to_flat_vector_length():
 
     flat = observation_to_flat_vector(observation)
 
-    expected_length = 1 + 52 + 52 + 52 + 52 + 4 + 2 + 1
-
+    expected_length = 1 + 52 + 52 + 52 + 52 + 4 + 2 + 1 + 10
     assert len(flat) == expected_length

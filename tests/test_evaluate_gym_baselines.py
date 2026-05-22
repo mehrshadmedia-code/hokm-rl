@@ -76,5 +76,5 @@ def test_evaluate_baseline_runs_multiple_episodes():
     assert stats["num_episodes"] == 20
     assert stats["wins"] + stats["losses"] == 20
     assert 0 <= stats["win_rate"] <= 1
-    assert -1.1 <= stats["avg_reward"] <= 1.1
+    assert -1.1 <= stats["avg_reward"] <= 1.1   
     assert stats["avg_learning_steps"] <= 13

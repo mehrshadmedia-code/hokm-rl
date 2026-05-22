@@ -56,7 +56,7 @@ class HokmGymEnv(gym.Env):
         self.policies: Dict[int, object] = {}
 
         self.action_space = spaces.Discrete(52)
-
+        
         # observation_to_flat_vector length:
         # player_id: 1
         # hand_vector: 52
@@ -66,7 +66,8 @@ class HokmGymEnv(gym.Env):
         # trump_vector: 4
         # team_tricks: 2
         # is_hakem: 1
-        obs_length = 1 + 52 + 52 + 52 + 52 + 4 + 2 + 1
+        # tactical_features: 10
+        obs_length = 1 + 52 + 52 + 52 + 52 + 4 + 2 + 1 + 10
 
         self.observation_space = spaces.Box(
             low=0,
