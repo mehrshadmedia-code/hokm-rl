@@ -124,6 +124,7 @@ def test_build_player_observation():
     assert sum(observation.hand_vector) == 3
     assert sum(observation.played_cards_vector) == 5
     assert sum(observation.current_trick_vector) == 1
+    assert len(observation.memory_features) == 24
 
 
 def test_build_player_observation_marks_hakem():
@@ -167,5 +168,5 @@ def test_observation_to_flat_vector_length():
 
     flat = observation_to_flat_vector(observation)
 
-    expected_length = 1 + 52 + 52 + 52 + 52 + 4 + 2 + 1 + 10
+    expected_length = 1 + 52 + 52 + 52 + 52 + 4 + 2 + 1 + 10+24
     assert len(flat) == expected_length

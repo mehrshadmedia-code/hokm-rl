@@ -8,6 +8,7 @@ from hokm.env import HokmEnv
 from hokm.game import TEAM_BY_PLAYER
 from hokm.observation import observation_to_flat_vector
 from hokm.policies import RandomLegalPolicy, SimpleRulePolicy
+from hokm.policies import RandomLegalPolicy, SimpleRulePolicy, AdvancedRulePolicy
 
 
 class HokmGymEnv(gym.Env):
@@ -56,7 +57,7 @@ class HokmGymEnv(gym.Env):
         self.policies: Dict[int, object] = {}
 
         self.action_space = spaces.Discrete(52)
-        
+
         # observation_to_flat_vector length:
         # player_id: 1
         # hand_vector: 52
@@ -67,7 +68,7 @@ class HokmGymEnv(gym.Env):
         # team_tricks: 2
         # is_hakem: 1
         # tactical_features: 10
-        obs_length = 1 + 52 + 52 + 52 + 52 + 4 + 2 + 1 + 10
+        obs_length = 1 + 52 + 52 + 52 + 52 + 4 + 2 + 1 + 10+24
 
         self.observation_space = spaces.Box(
             low=0,
@@ -313,8 +314,14 @@ class HokmGymEnv(gym.Env):
         if policy_name == "simple":
             return SimpleRulePolicy()
 
+        if policy_name == "advanced":
+            return AdvancedRulePolicy()
+
         if policy_name == "random":
             return RandomLegalPolicy(seed=seed)
+
+        raise ValueError(f"Unknown policy name: {policy_name}")
+    
 
         raise ValueError(f"Unknown policy name: {policy_name}")
 

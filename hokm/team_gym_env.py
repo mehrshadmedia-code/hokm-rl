@@ -8,7 +8,7 @@ from hokm.env import HokmEnv
 from hokm.game import TEAM_BY_PLAYER
 from hokm.observation import observation_to_flat_vector
 from hokm.policies import RandomLegalPolicy, SimpleRulePolicy
-
+from hokm.policies import RandomLegalPolicy, SimpleRulePolicy, AdvancedRulePolicy
 
 class HokmTeamGymEnv(gym.Env):
     """
@@ -44,7 +44,7 @@ class HokmTeamGymEnv(gym.Env):
 
         # Current feature observation size:
         # 1 + 52 + 52 + 52 + 52 + 4 + 2 + 1 + 10 = 226
-        obs_length = 1 + 52 + 52 + 52 + 52 + 4 + 2 + 1 + 10
+        obs_length = 1 + 52 + 52 + 52 + 52 + 4 + 2 + 1 + 10+24
 
         self.observation_space = spaces.Box(
             low=0,
@@ -216,6 +216,9 @@ class HokmTeamGymEnv(gym.Env):
     def _make_policy(policy_name: str, seed: int):
         if policy_name == "simple":
             return SimpleRulePolicy()
+
+        if policy_name == "advanced":
+            return AdvancedRulePolicy()
 
         if policy_name == "random":
             return RandomLegalPolicy(seed=seed)

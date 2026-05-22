@@ -4,6 +4,7 @@ from typing import Dict, List, Sequence
 from hokm.cards import Card, SUITS, card_to_id, cards_to_vector
 from hokm.rules import PlayedCard, get_legal_cards
 from hokm.features import build_tactical_features
+from hokm.card_memory import build_memory_features
 
 
 @dataclass(frozen=True)
@@ -31,7 +32,7 @@ class PlayerObservation:
     team_tricks: List[int]
     is_hakem: int
     tactical_features: List[float]
-
+    memory_features: List[float]
 
 def trump_to_vector(trump_suit: str) -> List[int]:
     """
@@ -132,6 +133,10 @@ def build_player_observation(
             trump_suit=trump_suit,
             team_tricks=team_tricks,
         ),
+                memory_features=build_memory_features(
+            completed_tricks=completed_tricks,
+            current_trick=current_trick,
+        )
     )
 
 
@@ -151,4 +156,5 @@ def observation_to_flat_vector(observation: PlayerObservation) -> List[int]:
         + observation.team_tricks
         + [observation.is_hakem]
         + observation.tactical_features
+        + observation.memory_features
     )
