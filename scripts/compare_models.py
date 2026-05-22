@@ -242,7 +242,7 @@ def parse_args():
         "--opponent-policy-name",
         type=str,
         default="simple",
-        choices=["simple", "random"],
+        choices=["simple", "advanced", "random"],
         help="Policy used by opponent players.",
     )
 
@@ -250,7 +250,7 @@ def parse_args():
         "--partner-policy-name",
         type=str,
         default="simple",
-        choices=["simple", "random"],
+        choices=["simple", "advanced", "random"],
         help="Policy used by the learning player's partner.",
     )
 

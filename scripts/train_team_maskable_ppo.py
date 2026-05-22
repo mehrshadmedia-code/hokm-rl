@@ -107,7 +107,7 @@ def parse_args():
         "--opponent-policy-name",
         type=str,
         default="simple",
-        choices=["simple", "random"],
+        choices=["simple", "advanced", "random"],
     )
 
     parser.add_argument(

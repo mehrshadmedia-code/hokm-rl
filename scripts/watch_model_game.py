@@ -12,10 +12,10 @@ from hokm.policies import RandomLegalPolicy, SimpleRulePolicy
 import traceback
 
 SUIT_SYMBOLS = {
-    "hearts": "♥",
-    "diamonds": "♦",
-    "clubs": "♣",
-    "spades": "♠",
+    "hearts": "H",
+    "diamonds": "D",
+    "clubs": "C",
+    "spades": "S",
 }
 
 SUIT_ORDER = {
@@ -43,7 +43,7 @@ RANK_ORDER = {
 
 
 def format_card(card) -> str:
-    return f"{card.rank}{SUIT_SYMBOLS[card.suit]}"
+    return f"{card.rank}-{SUIT_SYMBOLS[card.suit]}"
 
 
 def format_cards(cards) -> str:
@@ -101,59 +101,14 @@ class HokmVisualGame:
         self.refresh()
 
     def _build_ui(self):
-        self.top_label = tk.Label(
+        self.board_text = tk.Text(
             self.root,
-            text="",
-            font=("Arial", 18, "bold"),
-            pady=10,
+            height=28,
+            width=110,
+            font=("Courier", 13),
+            wrap="word",
         )
-        self.top_label.pack()
-
-        self.status_label = tk.Label(
-            self.root,
-            text="",
-            font=("Arial", 13),
-            justify="left",
-            pady=5,
-        )
-        self.status_label.pack()
-
-        self.trick_label = tk.Label(
-            self.root,
-            text="",
-            font=("Arial", 14, "bold"),
-            pady=8,
-        )
-        self.trick_label.pack()
-
-        self.players_frame = tk.Frame(self.root)
-        self.players_frame.pack(padx=10, pady=10)
-
-        self.player_labels = {}
-
-        for player_id in range(4):
-            label = tk.Label(
-                self.players_frame,
-                text="",
-                font=("Arial", 12),
-                justify="left",
-                anchor="w",
-                width=90,
-                relief="groove",
-                padx=8,
-                pady=8,
-            )
-            label.grid(row=player_id, column=0, sticky="w", pady=4)
-            self.player_labels[player_id] = label
-
-        self.message_label = tk.Label(
-            self.root,
-            text="",
-            font=("Arial", 13),
-            fg="blue",
-            pady=8,
-        )
-        self.message_label.pack()
+        self.board_text.pack(padx=12, pady=12)
 
         self.button_frame = tk.Frame(self.root)
         self.button_frame.pack(pady=10)
@@ -219,13 +174,18 @@ class HokmVisualGame:
 
         policy = self.bot_policies[player_id]
 
-        return policy.choose_action(
+        action = policy.choose_action(
             player_id=player_id,
             hand=self.env.hands[player_id],
             current_trick=self.env.current_trick,
             trump_suit=self.env.trump_suit,
         )
+
+        return int(action)
+    
     def next_play(self):
+        print("BUTTON CLICKED: Next Play", flush=True)
+
         try:
             if self.env.done:
                 self.last_message = "Game is finished. Click Reset to play again."
@@ -234,6 +194,12 @@ class HokmVisualGame:
 
             player_id = self.env.current_player
             action = self.choose_action_for_current_player()
+
+            if action is None:
+                raise RuntimeError(f"No action returned for player {player_id}.")
+
+            print(f"Before step: player={player_id}, action={action}", flush=True)
+
             result = self.env.step(action)
 
             played_card = result.info["played_card"]
@@ -241,21 +207,25 @@ class HokmVisualGame:
 
             actor = "MODEL" if player_id in self.model_players else self.opponent_policy_name.upper()
 
-            self.last_message = (
+            message = (
                 f"Move {self.move_number}: Player {player_id} ({actor}) played "
                 f"{format_card(played_card)}"
             )
 
             if result.info["trick_completed"]:
-                self.last_message += (
+                message += (
                     f" | Trick winner: Player {result.info['trick_winner']} "
                     f"| Score: {result.info['team_tricks']}"
                 )
 
             if self.env.done:
-                self.last_message += f" | GAME OVER. Winning team: Team {self.env.winning_team}"
+                message += f" | GAME OVER. Winning team: Team {self.env.winning_team}"
 
+            print(message, flush=True)
+
+            self.last_message = message
             self.refresh()
+            self.root.update_idletasks()
 
         except Exception as exc:
             self.last_message = f"ERROR: {exc}"
@@ -264,6 +234,7 @@ class HokmVisualGame:
             traceback.print_exc()
             print("=" * 80)
             self.refresh()
+            self.root.update_idletasks()
 
     def auto_play(self):
         if self.env.done:
@@ -288,64 +259,92 @@ class HokmVisualGame:
 
         self.move_number = 0
         self.last_message = f"New game started with seed {self.seed}."
+        self.history_text.delete("1.0", tk.END)
+        self.add_history(self.last_message)
         self.next_button.config(state="normal")
         self.refresh()
-
+    
     def refresh(self):
         model_players_text = ", ".join(str(player) for player in sorted(self.model_players))
 
-        self.top_label.config(
-            text=(
-                f"Hokm RL Viewer | Model player(s): {model_players_text} | "
-                f"Trump: {self.env.trump_suit} {SUIT_SYMBOLS[self.env.trump_suit]}"
-            )
-        )
+        lines = []
+        lines.append("=" * 90)
+        lines.append("HOKM RL VISUAL VIEWER")
+        lines.append("=" * 90)
+        lines.append(f"Seed: {self.seed}")
+        lines.append(f"Model player(s): {model_players_text}")
+        lines.append(f"Trump: {self.env.trump_suit}")
+        lines.append(f"Team 0: Players 0 & 2")
+        lines.append(f"Team 1: Players 1 & 3")
+        lines.append(f"Team tricks: {self.env.team_tricks}")
+        lines.append(f"Current player: {self.env.current_player}")
+        lines.append(f"Done: {self.env.done}")
+        lines.append("-" * 90)
 
-        self.status_label.config(
-            text=(
-                f"Seed: {self.seed}\n"
-                f"Team 0: Players 0 & 2 | Team 1: Players 1 & 3\n"
-                f"Team tricks: {self.env.team_tricks}\n"
-                f"Current player: {self.env.current_player}\n"
-                f"Done: {self.env.done}"
-            )
-        )
-
-        current_trick_text = "Current trick: "
-
+        lines.append("CURRENT TRICK:")
         if self.env.current_trick:
-            current_trick_text += " | ".join(
-                f"P{player_id}: {format_card(card)}"
-                for player_id, card in self.env.current_trick
-            )
+            for player_id, card in self.env.current_trick:
+                lines.append(f"  Player {player_id}: {format_card(card)}")
         else:
-            current_trick_text += "empty"
+            lines.append("  empty")
 
-        self.trick_label.config(text=current_trick_text)
+        lines.append("-" * 90)
 
-        for player_id, label in self.player_labels.items():
+        for player_id in range(4):
             is_current = player_id == self.env.current_player and not self.env.done
             is_model = player_id in self.model_players
 
-            if self.show_all_hands or is_model:
-                hand_text = format_cards(self.env.hands[player_id])
+            title = f"PLAYER {player_id}"
+            if is_model:
+                title += " [MODEL]"
             else:
-                hand_text = f"{len(self.env.hands[player_id])} cards hidden"
+                title += f" [{self.opponent_policy_name.upper()}]"
 
-            title = f"Player {player_id}"
-            title += "  [MODEL]" if is_model else f"  [{self.opponent_policy_name}]"
-            title += "  <-- current turn" if is_current else ""
+            if is_current:
+                title += "  <-- CURRENT TURN"
 
-            label.config(
-                text=f"{title}\n{hand_text}",
-                bg="#fff7cc" if is_current else "white",
-            )
+            lines.append(title)
 
-        self.message_label.config(text=self.last_message)
+            if self.show_all_hands or is_model:
+                lines.append(f"  Hand: {format_cards(self.env.hands[player_id])}")
+            else:
+                lines.append(f"  Hand: {len(self.env.hands[player_id])} cards hidden")
+
+            lines.append("")
+
+        lines.append("-" * 90)
+        lines.append("LAST MESSAGE:")
+        lines.append(self.last_message)
+        lines.append("=" * 90)
+
+        board = "\n".join(lines)
+
+        self.board_text.delete("1.0", tk.END)
+        self.board_text.insert(tk.END, board)
+        self.board_text.see(tk.END)
 
         if self.env.done:
             self.next_button.config(state="disabled")
+        else:
+            self.next_button.config(state="normal")
 
+        self.root.update_idletasks()
+        
+    def add_history(self, text: str):
+        self.history_text.insert(tk.END, text + "\n")
+        self.history_text.see(tk.END)
+
+    def next_trick(self):
+        if self.env.done:
+            self.refresh()
+            return
+
+        starting_completed_tricks = len(self.env.completed_tricks)
+
+        while not self.env.done and len(self.env.completed_tricks) == starting_completed_tricks:
+            self.next_play()
+
+        self.refresh()
 
 def parse_model_players(text: str) -> Set[int]:
     players = {int(part.strip()) for part in text.split(",") if part.strip()}
@@ -426,7 +425,7 @@ def main():
         deterministic=not args.stochastic,
         show_all_hands=not args.hide_opponent_hands,
     )
-
+    print("GUI opened. Click Next Play and watch terminal output.", flush=True)
     root.mainloop()
 
 

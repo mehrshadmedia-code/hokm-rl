@@ -3,7 +3,7 @@ from typing import Dict, List
 
 from hokm.env import HokmEnv
 from hokm.policies import RandomLegalPolicy, SimpleRulePolicy
-
+from hokm.policies import RandomLegalPolicy, SimpleRulePolicy, AdvancedRulePolicy
 
 def play_hand_with_policies(
     seed: int,
@@ -87,17 +87,21 @@ def make_policy(policy_name: str, seed: int):
     if policy_name == "simple":
         return SimpleRulePolicy()
 
+    if policy_name == "advanced":
+        return AdvancedRulePolicy()
+
     if policy_name == "random":
         return RandomLegalPolicy(seed=seed)
 
     raise ValueError(f"Unknown policy name: {policy_name}")
 
-
 def main():
     matchups = [
         ("random", "random"),
         ("simple", "random"),
-        ("simple", "simple"),
+        ("advanced", "random"),
+        ("advanced", "simple"),
+        ("advanced", "advanced"),
     ]
 
     for team_0_policy, team_1_policy in matchups:
